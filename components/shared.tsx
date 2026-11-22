@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { createContext, useContext, useEffect, useState } from "react";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createHackathonClient } from "../lib/hackathon/client";
@@ -41,7 +42,7 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
 }
 export function PortalShell({ children }: { children: React.ReactNode }) {
   const { user, client, landing, publicDetails } = usePortal();
-  return <><a href="#main" className="skip">Skip to content</a><header className="nav"><Link className="brand" href="/"><span className="brand-mark" aria-hidden="true">✳</span>{landing?.event.name || "LumaHacks"}</Link><nav aria-label="Main"><Link href="/#tracks">Tracks</Link><Link href="/#faq">FAQ</Link><Link href="/dashboard">Hacker hub</Link>{user ? <button className="text-button" onClick={() => { void client?.auth.signOut(); }}>Sign out</button> : <Link className="button small" href="/login">Sign in</Link>}</nav></header><main id="main">{children}</main><footer><Link className="brand" href="/">LumaHacks<span aria-hidden="true">✳</span></Link><p>A space for curious minds and bright ideas.</p><div><Link href="/organizer">Organizer access</Link>{(landing?.event.contact_email || publicDetails.contact_email) && <a href={`mailto:${landing?.event.contact_email || publicDetails.contact_email}`}>Contact the team</a>}</div></footer></>;
+  return <><a href="#main" className="skip">Skip to content</a><header className="nav"><Link className="brand chapter-brand" href="/" aria-label="LumaHacks, hosted by SASE at UCF"><Image src="/brand/sase-navy.png" alt="SASE" width={110} height={24} priority /><span className="brand-divider" aria-hidden="true" /><span className="brand-name">{landing?.event.name || "LumaHacks"}<small>SASE at UCF</small></span></Link><nav aria-label="Main"><Link href="/#tracks">Tracks</Link><Link href="/#faq">FAQ</Link><Link href="/dashboard">Hacker hub</Link>{user ? <button className="text-button" onClick={() => { void client?.auth.signOut(); }}>Sign out</button> : <Link className="button small" href="/login">Sign in</Link>}</nav></header><main id="main">{children}</main><footer><a className="chapter-footer" href="https://ucfsase.com" aria-label="SASE at UCF website"><Image src="/brand/sase-navy.png" alt="SASE" width={130} height={28} /><span>at the University of Central Florida</span></a><p>LumaHacks is hosted by the Society of Asian Scientists and Engineers at UCF.<br />Open to students from UCF and beyond.</p><div><Link href="/organizer">Organizer access</Link>{(landing?.event.contact_email || publicDetails.contact_email) && <a href={`mailto:${landing?.event.contact_email || publicDetails.contact_email}`}>Contact the team</a>}</div></footer></>;
 }
 export function External({ href, children, className }: { href: string | null | undefined; children: React.ReactNode; className?: string }) {
   const safe = webUrl(href);

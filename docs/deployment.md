@@ -26,8 +26,10 @@ before promotion. PRs never receive deployment credentials.
 
 Before activating deployment, protect `main` with required PR reviews and the
 `Test, typecheck, and build` check. Create GitHub environments named `production`
-and `preview`, configure required maintainers as reviewers, and restrict
-production to `main`. Store a team-scoped Vercel token as `VERCEL_TOKEN` in both
+and `preview`. Restrict production deployments to `main`; leave production
+required reviewers off so each validated push deploys automatically as requested.
+Configure required maintainers as reviewers for manual previews. Store a
+team-scoped Vercel token as `VERCEL_TOKEN` in both
 environments, not in source or chat. Review the exact commit before approving a
 preview, because builds execute repository code with environment configuration.
 GitHub write access is needed to publish this branch and activate the workflow.

@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
-            echo '::error::Add the VERCEL_TOKEN repository secret before deploying.'
+            echo '::error::Add VERCEL_TOKEN to the selected GitHub environment before deploying.'
             exit 1
           fi
       - name: Install Vercel CLI
@@ -111,14 +111,18 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "### Vercel deployment" >> "$GITHUB_STEP_SUMMARY"
           echo "$url" >> "$GITHUB_STEP_SUMMARY"
-      - name: Check deployed homepage
+      - name: Check deployed portal routes
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
-        run: vercel curl "$DEPLOYMENT_URL" --fail --silent --show-error --output /dev/null
+        shell: bash
+        run: |
+          for path in / /login /apply /dashboard /organizer /auth/callback /reset-password; do
+            vercel curl "$DEPLOYMENT_URL$path" --yes --fail --silent --show-error --output /dev/null
+          done
       - name: Publish checked production deployment
         if: env.DEPLOY_TARGET == 'production'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
-        run: vercel promote "$DEPLOYMENT_URL"
+        run: vercel promote "$DEPLOYMENT_URL" --yes
