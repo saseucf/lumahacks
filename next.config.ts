@@ -1,10 +1,4 @@
 import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  images: {
-    domains: ["randomuser.me", "iwimnudodmiijqhnkrcr.supabase.co"],
-  },
-};
-
-export default nextConfig;
+import path from "node:path";
+const config: NextConfig = { outputFileTracingRoot: path.resolve(__dirname) };
+export default config;

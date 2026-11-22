@@ -1,143 +1,89 @@
-# UCF SASE Website
+# LumaHacks portal
 
-Welcome to the official repository for the UCF SASE (Society of Asian Scientists and Engineers) website! This project is a modern web application built to serve the UCF SASE community.
+A standalone Next.js application for the LumaHacks website and hacker portal. It has its own layout,
+navigation, styles, auth callbacks, and browser session. It imports the shared
+backend adapter from `lib/hackathon` and uses the existing SASE Supabase project.
+It never calls the club's enrollment, points, or welcome-email flows.
 
-## Table of Contents
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-- [Developer Guide](#-developer-guide)
-  - [How to Create a PR](#how-to-create-a-pr)
-  - [Adding Routes](#adding-routes)
-  - [Making Components](#making-components)
-  - [API Routes](#api-routes)
-  - [Supabase Integration](#supabase-integration)
-- [Project Structure](#-project-structure)
-- [Deployment](#-deployment)
+## Run from the repository root
 
-## 🚀 Tech Stack
+```powershell
+npm.cmd ci
+npm.cmd run dev
+# http://127.0.0.1:3002
 
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Components**: [shadcn/ui](https://ui.shadcn.com/)
-- **Backend/Auth**: [Supabase](https://supabase.com/)
-- **Icons**: [Lucide React](https://lucide.dev/) & [React Icons](https://react-icons.github.io/react-icons/)
-- **Animations**: [AOS (Animate On Scroll)](https://michalsnik.github.io/aos/)
-
-### Why Shadcn/UI?
-Unlike traditional component libraries, **shadcn/ui** is not a dependency you install via npm. It's a collection of re-usable components that you copy and paste into your project.
-- **Ownership**: You own the code. You can customize every component to fit the project's specific needs.
-- **Accessibility**: Built on top of Radix UI primitives, ensuring high accessibility out of the box.
-- **Tailwind-first**: Everything is styled using Tailwind CSS classes, making it easy to maintain a consistent design system.
-
-### Why Tailwind CSS?
-**Tailwind CSS** is a utility-first CSS framework. Instead of writing custom CSS files, you apply pre-defined classes directly to your HTML/JSX.
-- **Speed**: Build complex designs quickly without leaving your HTML.
-- **Consistency**: Uses a standardized spacing and color scale.
-- **Performance**: Automatically removes unused CSS in production builds.
-
----
-
-## 🛠️ Getting Started
-
-### Prerequisites
-- [Node.js](https://nodejs.org/) (Latest LTS recommended)
-- [Git](https://git-scm.com/)
-
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/saseweb.git
-   cd saseweb
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Set up Environment Variables:**
-   Create a `.env.local` file in the root directory and add your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-   > [!NOTE]
-   > You can find these in your Supabase Project Settings > API.
-
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000) to see the site.
-
----
-
-## 📖 Developer Guide
-
-### How to Create a PR
-We welcome contributions! To keep the codebase clean, please follow these steps:
-1. **Sync**: Ensure your `main` branch is up to date.
-2. **Branch**: Create a new branch for your feature or fix (`git checkout -b feature/your-feature-name`).
-3. **Commit**: Write clear, descriptive commit messages.
-4. **Push**: Push your branch to GitHub.
-5. **Open PR**: Open a Pull Request against the `main` branch. Provide a clear description of your changes and any relevant screenshots.
-
-### Adding Routes
-This project uses the **Next.js App Router**.
-- **Location**: All routes are defined inside the `app/` directory.
-- **Convention**: Each folder represents a route segment. A `page.tsx` file inside that folder makes it publicly accessible.
-  - `app/about/page.tsx` -> `/about`
-  - `app/events/[id]/page.tsx` -> `/events/123` (Dynamic Route)
-
-### Making Components
-**What is a component?** A component is a self-contained, reusable piece of UI (like a Button, Navbar, or Card).
-- **Location**: Put shared components in the `components/` directory.
-- **Usage**:
-  - Use **Server Components** by default for better performance.
-  - Use **Client Components** (`'use client'`) only when you need interactivity (state, effects, event listeners).
-- **Adding Shadcn Components**:
-  ```bash
-  npx shadcn@latest add [component-name]
-  ```
-
-### API Routes
-API routes allow you to build internal APIs within the Next.js app.
-- **Location**: Created inside `app/api/`.
-- **Format**: Use a `route.ts` file.
-  ```typescript
-  // app/api/hello/route.ts
-  export async function GET() {
-    return Response.json({ message: 'Hello from the API' });
-  }
-  ```
-
-### Supabase Integration
-We use Supabase for Authentication and Data Storage.
-- **Auth**: Handled via `@supabase/ssr` (Server-Side Rendering) for secure session management.
-- **Client**: Use the `supabaseBrowser` client for client-side queries and `supabaseServer` for server-side logic (found in `lib/`).
-
----
-
-## 📂 Project Structure
-
-```text
-├── app/            # App Router (Pages, API, Layouts)
-├── components/     # Reusable UI Components
-│   └── ui/         # Shadcn UI Components
-├── lib/            # Utility functions & Supabase clients
-├── public/         # Static assets (images, fonts)
-└── styles/         # Global CSS
+npm.cmd run build
+npm.cmd run start
 ```
 
----
+Copy `.env.example` to `.env.local` and provide the existing project's public Supabase URL and anon key. Never expose service-role keys. Deploy this repository with root directory `.`, build command `npm run build`, and start command `npm start` (or the host's Next.js preset). Configure the exact `/auth/callback` URL before enabling authentication.
 
-## 🚀 Deployment
-The site is hosted on **Vercel**. Every push to the `main` branch triggers an automatic deployment.
+## Pages
 
----
+| Route | Purpose |
+| --- | --- |
+| `/` | Event date/location, application window, tracks/prizes, sponsors/partners, FAQ, socials/contact |
+| `/login` | Shared-account sign-in, signup, Google/Discord, forgot password |
+| `/auth/callback` | Portal-only PKCE email/OAuth callback, no club enrollment |
+| `/reset-password` | Set a password after a recovery link |
+| `/apply` | Verified-account application with catalog school selection and versioned consent |
+| `/dashboard` | Application/RSVP, QR, countdown, guide/community links, Wi-Fi, announcements, schedule, teams, map/parking, profile/resume, perks |
+| `/organizer` | Role-checked application review, QR scanner/manual check-in, event content editing |
 
-## � Deployment
-The site is hosted on **Vercel**. Every push to the `main` branch triggers an automatic deployment.
+Confirmed date-only public details are in `event-details.json` and the database
+configuration: March 6-7, 2027, RSVP by February 15, 2027, the supplied contact
+email, and Discord invite. They are displayed while operational setup is pending.
+Actual event times, application windows, and venue details remain unset. Other
+public and private content comes from the database; no fictional dates, prizes,
+sponsors, credentials, or applications are seeded. Empty/loading/error states are
+explicit. Hacker data is discarded when the account changes. The hub refreshes
+every 30 seconds while visible and when the window regains focus. No Realtime
+publication is required.
+
+Hacker QR codes encode only their opaque token. The scanner accepts UUIDs only;
+the database authorizes scans and deduplicates them. Resume downloads require
+signed links and a second click, avoiding browser popup blocking. Sponsor/guide
+URLs are restricted to HTTP(S). Organizer code uses only the signed-in user's
+client; no service credentials are sent to the browser.
+
+Sign-in/signup controls remain disabled until the account-isolation release
+migration marks the backend ready. Direct application submission is also blocked
+by the database until then. This prevents new portal signups from accidentally
+creating club profiles while the old club deployment is still running.
+
+## Release order
+
+See [database setup](database/hackathon/README.md). The important order is:
+
+1. Apply the additive `001_backend.sql` in the existing project (already applied
+   through the Supabase connector on November 22, 2026).
+2. Deploy the updated SASE app with explicit club profile enrollment.
+3. Apply `002_account_isolation.sql` to switch signup handling safely.
+4. Expose the `hackathon` API schema, preserving existing exposure and RLS.
+   `003_expose_api.sql` is prepared; live execution awaits explicit approval.
+5. Configure event data, school/country catalogs, terms, and hackathon staff.
+6. Allowlist the portal's exact `/auth/callback` URLs in Supabase. Keep club
+   callbacks and the existing Site URL. Provider setup stays shared.
+7. Deploy this app to its own origin with the same public project configuration.
+8. Smoke-test email verification, OAuth, RSVP, team joins, private resume upload,
+   map navigation, and scanner camera permissions on the real deployment.
+
+The portal code builds independently from the main SASE site. Do not replace the
+club app's root routes with these pages. A separate host also needs HTTPS for
+production camera access. Camera denial has a manual-token fallback.
+
+## Checks
+
+```powershell
+npm.cmd run typecheck
+npm.cmd test
+npm.cmd run build
+node scripts/check-hackathon-setup.mjs
+```
+
+The setup checker reports missing backend readiness, event/catalog/terms data,
+and API exposure without printing credentials. The database integration suite
+and isolated test-engine instructions are in the database guide. Passing builds
+and HTTP checks do not replace live authenticated browser smoke tests.
+
+Account-isolation migrations require coordinated club authentication changes; do not run 002 or enable portal authentication against an unchanged club deployment. No database changes are performed by this repository extraction.

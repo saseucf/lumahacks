@@ -1,30 +1,17 @@
-import { Suspense } from "react"
-import { Inter } from "next/font/google"
-import { ResetPasswordForm } from "@/components/reset-password-form"
-import styles from "../login/login.module.css"
-
-const inter = Inter({ subsets: ["latin"], display: "swap" })
-
-export const metadata = {
-    title: "Set New Password | UCF SASE",
-    description: "Set a new password for your UCF SASE account.",
-}
-
-export default function ResetPasswordPage() {
-    return (
-        <main className={`${styles.page} ${inter.className}`}>
-            <div className={styles.layout} style={{ display: "flex", justifyContent: "center" }}>
-                <section className={styles.signIn} aria-labelledby="reset-heading">
-                    <header className={styles.heading}>
-                        <p className={styles.eyebrow}>UCF SASE · Account recovery</p>
-                        <h1 id="reset-heading">Set a new password</h1>
-                        <p>Enter your new password below.</p>
-                    </header>
-                    <Suspense>
-                        <ResetPasswordForm />
-                    </Suspense>
-                </section>
-            </div>
-        </main>
-    )
+"use client";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { Notice, usePortal } from "../../components/shared";
+export default function ResetPassword() {
+  const { client, user } = usePortal(), router = useRouter();
+  const [error, setError] = useState(""), [busy, setBusy] = useState(false);
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault(); if (!client) return;
+    const form = new FormData(e.currentTarget);
+    if (form.get("password") !== form.get("confirm")) { setError("Passwords must match."); return; }
+    setBusy(true); setError("");
+    const { error } = await client.auth.updateUser({ password: String(form.get("password")) });
+    if (error) { setError(error.message); setBusy(false); } else router.replace("/dashboard");
+  }
+  return <div className="page narrow"><p className="eyebrow">A fresh start</p><h1>Set your password.</h1><p>This password also works for your shared SASE account.</p>{error && <Notice error>{error}</Notice>}{!user && <Notice>Open your password reset email first to continue.</Notice>}<form onSubmit={submit}><label>New password<input name="password" type="password" autoComplete="new-password" minLength={12} required /></label><label>Confirm new password<input name="confirm" type="password" autoComplete="new-password" minLength={12} required /></label><button className="button" disabled={busy || !user}>{busy ? "Saving…" : "Save password"}</button></form></div>;
 }
