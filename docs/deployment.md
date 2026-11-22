@@ -13,9 +13,9 @@ The separate `saseweb` project and `ucfsase.com` domain are not changed.
 
 Deployment `dpl_HecLJAvFWMN4rgXYcd2tGoK4FgPm` reached READY; Vercel ran tests,
 type checking, and the production build successfully. An authenticated homepage
-request returned HTTP 200. Production currently retains Vercel team-login
-protection: making it public requires explicit approval after automatic approval
-review rejected that access change. Registration remains unavailable by design.
+request returned HTTP 200. The user explicitly approved public production access
+on November 22, 2026; production is public and preview deployments retain Vercel
+authentication. Registration remains unavailable by design.
 
 ## CI/CD activation
 
@@ -32,7 +32,7 @@ Configure required maintainers as reviewers for manual previews. Store a
 team-scoped Vercel token as `VERCEL_TOKEN` in both
 environments, not in source or chat. Review the exact commit before approving a
 preview, because builds execute repository code with environment configuration.
-GitHub write access is needed to publish this branch and activate the workflow.
+GitHub push access and the production environment token have been configured.
 
 ## Database isolation verified on November 22, 2026
 
@@ -55,8 +55,10 @@ provider configuration, and SMTP settings.
 
 Read-only checks found 245 club profiles, 404 club attendance records, zero
 hackathon applications, no published hackathon, and empty school/country/terms
-catalogs. No database rows, triggers, RLS policies, API exposure, or Auth settings
-were changed during deployment. Public event announcements can be served while
+catalogs. With explicit user approval, migration `expose_hackathon_api` appended
+`hackathon` to API exposure, preserving `public,graphql_public`. No database rows,
+triggers, RLS policies, or Auth settings were changed. All 29 isolated database
+integration checks pass, including preservation of club data. Public event announcements can be served while
 registration remains closed. The full authenticated portal still requires the
 documented cutover, schema exposure, event/catalog/terms setup, callback allowlist,
 and live end-to-end tests before opening applications.
