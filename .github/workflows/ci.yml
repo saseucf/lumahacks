@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment environment (production requires main)
+        type: choice
+        options: [preview, production]
+        default: preview
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    name: Test, typecheck, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      # Synthetic build-only values: CI must never access production services.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-build-placeholder
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
+
+  deploy:
+    name: Deploy to Vercel
+    needs: validate
+    # PRs (including forks) never receive the deployment token.
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || inputs.target == 'preview')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: vercel-${{ github.ref }}
+      cancel-in-progress: false
+    environment:
+      name: ${{ (github.event_name == 'push' || inputs.target == 'production') && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_ORG_ID: team_OoQo7dCwu9dcrSP5YMpSqZBq
+      VERCEL_PROJECT_ID: prj_7zSC9Gj0hbIHguEzri8D6IQaVtkz
+      DEPLOY_TARGET: ${{ (github.event_name == 'push' || inputs.target == 'production') && 'production' || 'preview' }}
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Check deployment credentials
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo '::error::Add the VERCEL_TOKEN repository secret before deploying.'
+            exit 1
+          fi
+      - name: Install Vercel CLI
+        run: npm install --global vercel@66.6.0
+      - name: Pull project configuration
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment="$DEPLOY_TARGET"
+      - name: Build deployment artifact
+        shell: bash
+        run: |
+          if [ "$DEPLOY_TARGET" = production ]; then
+            vercel build --prod
+          else
+            vercel build
+          fi
+      - name: Deploy artifact
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          if [ "$DEPLOY_TARGET" = production ]; then
+            url=$(vercel deploy --prebuilt --prod --skip-domain)
+          else
+            url=$(vercel deploy --prebuilt)
+          fi
+          DEPLOYMENT_URL="$url" node --input-type=module -e '
+            const value = process.env.DEPLOYMENT_URL;
+            const url = new URL(value);
+            if (url.protocol !== "https:" || url.origin !== value || !url.hostname.endsWith(".vercel.app")) process.exit(1);
+          '
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "### Vercel deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
+      - name: Check deployed homepage
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: vercel curl "$DEPLOYMENT_URL" --fail --silent --show-error --output /dev/null
+      - name: Publish checked production deployment
+        if: env.DEPLOY_TARGET == 'production'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.url }}
+        run: vercel promote "$DEPLOYMENT_URL"
