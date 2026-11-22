@@ -23,7 +23,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.15",
     "dotenv": "^17.4.2"
   }
 }
