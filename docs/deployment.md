@@ -3,13 +3,19 @@
 - Team: `sase-ucfs-projects` (`team_OoQo7dCwu9dcrSP5YMpSqZBq`).
 - Project: `lumahacks` (`prj_7zSC9Gj0hbIHguEzri8D6IQaVtkz`).
 - Dashboard: https://vercel.com/sase-ucfs-projects/lumahacks
-- Production alias: https://lumahacks-sase-ucfs-projects.vercel.app
+- Production alias: https://lumahacks.vercel.app
 - Initial source: `f1dd8483f7e70781b10da28e226c8597d64f4833`.
 - Runtime: Node.js 22, Next.js preset, repository root.
 
 The initial deployment uploads the exact tracked standalone portal source through
 the Vercel API. It does not connect a GitHub login to the shared Vercel account.
 The separate `saseweb` project and `ucfsase.com` domain are not changed.
+
+Deployment `dpl_HecLJAvFWMN4rgXYcd2tGoK4FgPm` reached READY; Vercel ran tests,
+type checking, and the production build successfully. An authenticated homepage
+request returned HTTP 200. Production currently retains Vercel team-login
+protection: making it public requires explicit approval after automatic approval
+review rejected that access change. Registration remains unavailable by design.
 
 ## CI/CD activation
 
